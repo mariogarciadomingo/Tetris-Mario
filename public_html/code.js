@@ -23,7 +23,7 @@ Piece.prototype.rotarEsquerra = function () {
     for (var i = 0; i < this.forma.length; i++) {
         formaNova[i] = new Array();
         for (var j = 0; j < this.forma[i].length; j++) {
-            formaNova[i][j] = this.forma[j ][this.forma[i].length - 1 - i];
+            formaNova[i][j] = this.forma[j][this.forma[i].length - 1 - i];
         }
     }
     this.forma = formaNova;
@@ -31,6 +31,8 @@ Piece.prototype.rotarEsquerra = function () {
 
 var joc = {
     color: 0,
+    mouredreta: false,
+    girA: false,
     mouredreta: false,
     moureesquerra: false,
     espai: [],
@@ -60,31 +62,24 @@ var joc = {
             for (var x = 0; x < 10; x++) {
                 if (this.espai[i][x] == 0)
                     ctx.drawImage(vacio, x * 28, i * 28, 28, 28);
-                else if (this.espai[i][x] == 1)
-                {
+                else if (this.espai[i][x] == 1) {
                     ctx.drawImage(groc, x * 28, i * 28, 28, 28);
-                } else if (this.espai[i][x] == 2)
-                {
+                } else if (this.espai[i][x] == 2) {
                     ctx.drawImage(lila, x * 28, i * 28, 28, 28);
-                } else if (this.espai[i][x] == 3)
-                {
+                } else if (this.espai[i][x] == 3) {
                     ctx.drawImage(verd, x * 28, i * 28, 28, 28);
-                } else if (this.espai[i][x] == 4)
-                {
+                } else if (this.espai[i][x] == 4) {
                     ctx.drawImage(roig, x * 28, i * 28, 28, 28);
-                } else if (this.espai[i][x] == 5)
-                {
+                } else if (this.espai[i][x] == 5) {
                     ctx.drawImage(blau, x * 28, i * 28, 28, 28);
-                } else if (this.espai[i][x] == 6)
-                {
+                } else if (this.espai[i][x] == 6) {
                     ctx.drawImage(taronga, x * 28, i * 28, 28, 28);
                 } else
                     ctx.drawImage(morat, x * 28, i * 28, 28, 28);
             }
         }
     },
-    BorrarFormaPiece: function ()
-    {
+    BorrarFormaPiece: function () {
         for (var i = 0; i < 4; i++) {
             for (var x = 0; x < 4; x++) {
                 //if(this.espai.length<=this.Piece.y + i && this.espai[i].length<=this.Piece.x + i)
@@ -93,74 +88,116 @@ var joc = {
             }
         }
     },
-    FMoureDreta()
-    {
-        this.Piece.x = this.Piece.x + 1;
-        this.mouredreta = false;
-    },
-    FMoureEsquerra()
-    {
-        this.Piece.x = this.Piece.x - 1;
-        this.moureesquerra = false;
-    },
-    BaixarPiece: function () {
-        if (this.Piece.forma != null) {
-            if (this.PotBaixar()) {
-                this.BorrarFormaPiece();
-                if (this.mouredreta)
-                    this.FMoureDreta();
-                else
-                if (this.moureesquerra)
-                    this.FMoureEsquerra();
-                //this.espai[this.Piece.y]=[0,0,0,0,0,0,0,0,0,0];
-                this.Piece.y = this.Piece.y + 1;
-                for (var i = 0; i < 4; i++) {
-                    for (var x = 0; x < 4; x++) {
-                        if (this.Piece.forma[i][x] == 1)
-                            this.espai[this.Piece.y + i][this.Piece.x + x] = this.color;
-
+    FMoureDreta() {
+        var pot = true;
+        for (var x = 0; x < 4; x++) {
+            for (var i = 0; i < 4; i++) {
+                if (this.Piece.forma[x][i] == 1) {
+                    if (i < 3) {
+                        if (this.Piece.forma[x][i + 1] != 1 && this.espai[this.Piece.y + x][this.Piece.x + i + 1] != 0)
+                            pot = false;
                     }
+                    else
+                        if (this.espai[this.Piece.y + x][this.Piece.x + i] != 0)
+                            pot = false;
                 }
-            } else
-            {
-                this.EliminarEspai();
+
             }
 
         }
+
+
+        if (pot) {
+            this.Piece.x = this.Piece.x + 1;
+        }
+        this.mouredreta = false;
     },
-    PotBaixar: function ()
-    {
+    FMoureEsquerra() {
         var pot = true;
-        if (this.Piece.y + 4 < 25)
-        {
+        for (var x = 0; x < 4; x++) {
+            if (this.Piece.forma[x][0] == 1) {
+                if (this.espai[this.Piece.y + x][this.Piece.x + -1] != 0)
+                    pot = false;
+
+                else
+                    if (this.espai[this.Piece.y + x][this.Piece.x - 1] != 0)
+                        pot = false;
+            }
+        }
+        if (pot) {
+            this.Piece.x = this.Piece.x - 1;
+        }
+        this.moureesquerra = false;
+    },
+    BaixarPiece: function () {
+        var nova = false;
+        if (this.Piece.forma != null) {
+            if (this.mouredreta) {
+                this.BorrarFormaPiece();
+                this.FMoureDreta();
+            }
+            else
+                if (this.moureesquerra) {
+                    this.BorrarFormaPiece();
+                    this.FMoureEsquerra();
+                }
+                else
+            if (this.girA) {
+                this.BorrarFormaPiece();
+                var formaAnt = this.Piece.forma;
+                this.Piece.rotarEsquerra();
+                this.EliminarEspai();
+                if (this.comprovarGir(formaAnt)) {
+                   
+                }
+                this.girA = false;
+            }
+            if (this.PotBaixar()) {
+                this.BorrarFormaPiece();
+                this.Piece.y = this.Piece.y + 1;
+            } else {
+                nova = true;
+            }
             for (var i = 0; i < 4; i++) {
                 for (var x = 0; x < 4; x++) {
-
-                    /*if(i!=3){
-                     
-                     if(this.Piece.forma[i+1][x]!=0){
-                     if (this.espai[this.Piece.y+3][this.Piece.x+x]!=0)
-                     pot = false;
-                     }
-                     else{
-                     if (this.espai[this.Piece.y+4][this.Piece.x+x]!=0)
-                     pot = false;
-                     }
-                     }
-                     else
-                     {
-                     if (this.espai[this.Piece.y+4][this.Piece.x+x]!=0)
-                     pot = false;
-                     }
-                     }*/
-                    if (this.Piece.forma[i][x] == 1) {
-                        if (i < 3)
-                        {
-                            if (this.Piece.forma[i + 1][x] != 1 && this.espai[this.Piece.y + i + 1][this.Piece.x + x] != 0)
-                                pot = false;
-                        } else
+                    if (this.Piece.forma[i][x] == 1)
+                        this.espai[this.Piece.y + i][this.Piece.x + x] = this.color;
+                }
+            }
+            if (nova)
+                this.NewPiece();
+        }
+    },
+    comprovarGir: function (formaAnt) {
+        var pot = true;
+        for (var i = 0; i < 4; i++) {
+            for (var x = 0; x < 4; x++) {
+                if (this.Piece.forma[i][x] == 1)
+                    if (this.Piece.y + i + 1 < 24 && this.Piece.x + x < 10) {
                         if (this.espai[this.Piece.y + i + 1][this.Piece.x + x] != 0)
                             pot = false;
+                    }
+                    else { pot = false; }
+            }
+        }
+        if (!pot) {
+            this.Piece.forma = formaAnt;
+        }
+        return pot;
+    },
+    PotBaixar: function () {
+        var pot = true;
+        if (this.Piece.y + 4 < 25) {
+            for (var i = 0; i < 4; i++) {
+                for (var x = 0; x < 4; x++) {
+                    if (this.Piece.forma[i][x] == 1) {
+                        if (i < 3) {
+                            if (this.Piece.forma[i + 1][x] != 1 && this.espai[this.Piece.y + i + 1][this.Piece.x + x] != 0)
+                                pot = false;
+                        }
+                        else
+                            if (this.espai[this.Piece.y + i + 1][this.Piece.x + x] != 0)
+                                pot = false;
                     }
 
                 }
@@ -170,55 +207,43 @@ var joc = {
             return pot;
         }
     },
-    EliminarEspai: function ()
-    {
+    EliminarEspai: function () {
         var pot = true;
-        for (var x = 0; x < 4; x++)
-        {
-
-            if (this.Piece.forma[this.Piece.forma.length - 1][x] != 0)
+        pot = true;
+        for (var x = 0; x < 4; x++) {
+            if (this.Piece.forma[x][0] != 0)
                 pot = false;
+        }
+        if (pot) {
+
+            for (var i = 0; i < this.Piece.forma.length - 1; i++) {
+                //if (this.Piece.forma[i][x] != 0)
+                for (var x = 0; x < this.Piece.forma[i].length; x++) {
+                    this.Piece.forma[x][i] = this.Piece.forma[x][i + 1];
+                    this.Piece.forma[x][i + 1] = 0;
+                }
+            }
+            this.EliminarEspai();
+        } else {
+            pot = true;
+            for (var x = 0; x < 4; x++) {
+                if (this.Piece.forma[this.Piece.forma.length - 1][x] != 0)
+                    pot = false;
+            }
+            this.Piece.y = this.Piece.y + 1;
+            if (pot) {
+                this.Piece.y = this.Piece.y - 1;
+                for (var i = this.Piece.forma.length - 1; i > 0; i--) {
+                    if (this.Piece.forma[this.Piece.forma.length - 1][x] != 0)
+                        for (var x = 0; x < this.Piece.forma[i].length; x++) {
+                            this.Piece.forma[i][x] = this.Piece.forma[i - 1][x];
+                        }
+                }
+                this.Piece.forma[0] = [0, 0, 0, 0];
+                this.EliminarEspai();
+            }
 
         }
-
-        if (pot) {
-            //this.BorrarFormaPiece();
-            //this.Piece.y = this.Piece.y + 1;
-            for (var i = this.Piece.forma.length - 1; i > 0; i--) {
-                for (var x = 0; x < this.Piece.forma[i].length; x++) {
-                    this.Piece.forma[i][x] = this.Piece.forma[i - 1][x]
-                }
-            }
-           
-            if(this.PotBaixar()|| this.Piece.y==this.espai.length-4){
-            if(this.PotBaixar())
-            this.BorrarFormaPiece();
-            for (var i = 0; i < 4; i++) {
-                for (var x = 0; x < 4; x++) {
-                    if (this.Piece.forma[i][x] == 1)
-                    {
-                        if(this.Piece.y + i<this.espai.length)
-                        this.espai[this.Piece.y + i][this.Piece.x + x] = this.color;
-                    }
-
-                }
-            }
-            }
-           
-            /*		
-             for (var i = 0; i < 3; i++) {
-             for (var x = 0; x < this.Piece.forma[i].length; x++) {
-             if (this.Piece.forma[i][x] != 0 )
-             this.espai[this.Piece.y + i][this.Piece.x + x] = this.color;
-             
-             }
-             }
-             //this.BaixarPiece();*/
-        }  
-        this.NewPiece();
-
-
-
 
     },
     RandomPiece: function () {
@@ -234,12 +259,12 @@ var joc = {
         return peces[numeroAleatori];
     },
     NewPiece: function () {
-        if (this.Piece.color == null)
-        {
+        if (this.Piece.color == null) {
             pa = this.RandomPiece();
             this.nextPiece = new Piece(pa[0], pa[1]);
         }
         this.Piece = this.nextPiece;
+
         pa = this.RandomPiece();
         this.nextPiece = new Piece(pa[0], pa[1]);
         if (this.Piece.color == "groc")
@@ -256,6 +281,7 @@ var joc = {
             this.color = 6;
         else if (this.Piece.color == "morat")
             this.color = 7;
+        this.EliminarEspai();
     }
 
 };
@@ -272,20 +298,19 @@ var interval = setInterval(function () {
 document.getElementById("count").innerHTML = "SCORE : " + joc.Score;
 function TeclaPitjada(e) {
     if (e["code"] == "ArrowUp") {
-        //Player["gir"] = 0;
+        joc.girA = true;
     } else
-    if (e["code"] == "ArrowDown") {
-        //Player["gir"] = 1;
-    } else
-    if (e["code"] == "ArrowRight") {
-        joc.mouredreta = true;
-    } else
-    if (e["code"] == "ArrowLeft") {
-        joc.moureesquerra = true;
-    }
+        if (e["code"] == "ArrowDown") {
+            //Player["gir"] = 1;
+        } else
+            if (e["code"] == "ArrowRight") {
+                joc.mouredreta = true;
+            } else
+                if (e["code"] == "ArrowLeft") {
+                    joc.moureesquerra = true;
+                }
     if (e["code"] == "Enter") {
-        if (interval != null)
-        {
+        if (interval != null) {
             clearInterval(interval);
             interval = null;
         }

@@ -1,11 +1,13 @@
 var canvas = document.getElementById("espai");
+var canvasSe = document.getElementById("proxima");
 var ctx = canvas.getContext("2d");
+var ctxSe = canvasSe.getContext("2d");
 var vacio = document.getElementById("vacio");
 var groc = document.getElementById("groc");
 var Piece = function (forma, color) {
     this.forma = forma;
     this.color = color;
-    this.x = 3;
+    this.x = 4;
     this.y = 0;
 };
 Piece.prototype.rotarDreta = function () {
@@ -31,16 +33,20 @@ Piece.prototype.rotarEsquerra = function () {
 
 var joc = {
     color: 0,
-    mouredreta: false,
+    Score:0,
+    
     girA: false,
+    espaiEliminatX: 0,
+    espaiEliminatY: 0,
     mouredreta: false,
     moureesquerra: false,
+    baixar: false,
     espai: [],
     puntuacio: 0,
     puntuacioMax: 0,
     Piece: new Piece(),
     nextPiece: [],
-    comptador: [['groc', 0], ['lila', 0], ['verd', 0], ['roig', 0], ['blau', 0], ['taronga', 0], ['morat', 0]],
+    comptador: [0, 0, 0, 0, 0, 0, 0],
     interval: 1000,
     inicialitzar: function () {
         this.NewPiece();
@@ -60,25 +66,29 @@ var joc = {
     MostrarEspai: function () {
         for (var i = 0; i < 25; i++) {
             for (var x = 0; x < 10; x++) {
-                if (this.espai[i][x] == 0)
-                    ctx.drawImage(vacio, x * 28, i * 28, 28, 28);
-                else if (this.espai[i][x] == 1) {
-                    ctx.drawImage(groc, x * 28, i * 28, 28, 28);
-                } else if (this.espai[i][x] == 2) {
-                    ctx.drawImage(lila, x * 28, i * 28, 28, 28);
-                } else if (this.espai[i][x] == 3) {
-                    ctx.drawImage(verd, x * 28, i * 28, 28, 28);
-                } else if (this.espai[i][x] == 4) {
-                    ctx.drawImage(roig, x * 28, i * 28, 28, 28);
-                } else if (this.espai[i][x] == 5) {
-                    ctx.drawImage(blau, x * 28, i * 28, 28, 28);
-                } else if (this.espai[i][x] == 6) {
-                    ctx.drawImage(taronga, x * 28, i * 28, 28, 28);
-                } else
-                    ctx.drawImage(morat, x * 28, i * 28, 28, 28);
+                ctx.drawImage(this.CalculColor(this.espai[i][x]), x * 28, i * 28, 28, 28);
             }
         }
     },
+    CalculColor(pos) {
+        if (pos == 0)
+            return vacio;
+        else if (pos == 1) {
+            return groc;
+        } else if (pos == 2) {
+            return lila;
+        } else if (pos == 3) {
+            return verd;
+        } else if (pos == 4) {
+            return roig;
+        } else if (pos == 5) {
+            return blau;
+        } else if (pos == 6) {
+            return taronga;
+        } else
+            return morat;
+    }
+    ,
     BorrarFormaPiece: function () {
         for (var i = 0; i < 4; i++) {
             for (var x = 0; x < 4; x++) {
@@ -101,13 +111,12 @@ var joc = {
                         if (this.espai[this.Piece.y + x][this.Piece.x + i] != 0)
                             pot = false;
                 }
-
             }
-
         }
 
 
         if (pot) {
+            this.BorrarFormaPiece();
             this.Piece.x = this.Piece.x + 1;
         }
         this.mouredreta = false;
@@ -125,33 +134,42 @@ var joc = {
             }
         }
         if (pot) {
+            this.BorrarFormaPiece();
             this.Piece.x = this.Piece.x - 1;
+
         }
         this.moureesquerra = false;
     },
     BaixarPiece: function () {
         var nova = false;
         if (this.Piece.forma != null) {
-            if (this.mouredreta) {
-                this.BorrarFormaPiece();
+            if (this.mouredreta && !this.baixar ) {
+
                 this.FMoureDreta();
+
             }
             else
-                if (this.moureesquerra) {
-                    this.BorrarFormaPiece();
+                if (this.moureesquerra && !this.baixar) {
+
                     this.FMoureEsquerra();
+
                 }
                 else
-            if (this.girA) {
-                this.BorrarFormaPiece();
-                var formaAnt = this.Piece.forma;
-                this.Piece.rotarEsquerra();
-                this.EliminarEspai();
-                if (this.comprovarGir(formaAnt)) {
-                   
-                }
-                this.girA = false;
-            }
+                    if (this.girA && !this.baixar) {
+                        this.espaiEliminatX = 0;
+                        this.espaiEliminatY = 0;
+                        this.BorrarFormaPiece();
+                        var formaAnt = this.Piece.forma;
+                        this.Piece.rotarEsquerra();
+                        this.EliminarEspai();
+
+                        if (this.comprovarGir(formaAnt)) {
+
+                            this.Piece.x = this.Piece.x + this.espaiEliminatX;
+                            this.Piece.y = this.Piece.y - this.espaiEliminatY + 1;
+                        }
+                        this.girA = false;
+                    }
             if (this.PotBaixar()) {
                 this.BorrarFormaPiece();
                 this.Piece.y = this.Piece.y + 1;
@@ -164,8 +182,42 @@ var joc = {
                         this.espai[this.Piece.y + i][this.Piece.x + x] = this.color;
                 }
             }
-            if (nova)
-                this.NewPiece();
+            
+            if (nova) {
+                
+                this.baixar=false;
+                if (this.Piece.y > 2){
+                    this.EliminarFilasCompletas();
+                    this.NewPiece();
+                }
+                else
+                    clearInterval(interval);
+            }
+            if(this.baixar)
+            {this.BaixarPiece();}
+        }
+    },
+    EliminarFilasCompletas:function()
+    {
+        for (var i = 24; i >= 0; i--) {
+            var eliminar = true;
+            for (var x = 0; x < 10; x++) {
+                if(this.espai[i][x]==0)
+                {
+                    eliminar = false;
+                }
+            }
+            if(eliminar){
+            for(var i = 24; i >= 0; i--){
+            if(i!=0)
+            this.espai[i]=this.espai[i-1];
+            else
+            this.espai[i]=[0,0,0,0,0,0,0,0,0,0];
+
+            }
+            i=0;
+            this.EliminarFilasCompletas();
+            }
         }
     },
     comprovarGir: function (formaAnt) {
@@ -202,8 +254,6 @@ var joc = {
 
                 }
             }
-
-
             return pot;
         }
     },
@@ -223,6 +273,7 @@ var joc = {
                     this.Piece.forma[x][i + 1] = 0;
                 }
             }
+            this.espaiEliminatY = this.espaiEliminatY + 1;
             this.EliminarEspai();
         } else {
             pot = true;
@@ -230,15 +281,16 @@ var joc = {
                 if (this.Piece.forma[this.Piece.forma.length - 1][x] != 0)
                     pot = false;
             }
-            this.Piece.y = this.Piece.y + 1;
+
             if (pot) {
-                this.Piece.y = this.Piece.y - 1;
+
                 for (var i = this.Piece.forma.length - 1; i > 0; i--) {
                     if (this.Piece.forma[this.Piece.forma.length - 1][x] != 0)
                         for (var x = 0; x < this.Piece.forma[i].length; x++) {
                             this.Piece.forma[i][x] = this.Piece.forma[i - 1][x];
                         }
                 }
+                this.espaiEliminatX = this.espaiEliminatX + 1;
                 this.Piece.forma[0] = [0, 0, 0, 0];
                 this.EliminarEspai();
             }
@@ -248,13 +300,13 @@ var joc = {
     },
     RandomPiece: function () {
         var peces = [
-            [[[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]], "groc"],
-            [[[0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0]], "lila"],
-            [[[0, 0, 0, 0], [0, 1, 1, 0], [1, 1, 0, 0], [0, 0, 0, 0]], "verd"],
-            [[[0, 0, 0, 0], [0, 1, 1, 0], [0, 0, 1, 1], [0, 0, 0, 0]], "roig"],
-            [[[0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 1, 0], [0, 0, 0, 0]], "blau"],
-            [[[0, 1, 1, 0], [0, 1, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0]], "taronga"],
-            [[[0, 0, 0, 0], [1, 1, 1, 0], [0, 1, 0, 0], [0, 0, 0, 0]], "morat"]]
+            [[[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]], 1],
+            [[[0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0]], 2],
+            [[[0, 0, 0, 0], [0, 1, 1, 0], [1, 1, 0, 0], [0, 0, 0, 0]], 3],
+            [[[0, 0, 0, 0], [0, 1, 1, 0], [0, 0, 1, 1], [0, 0, 0, 0]], 4],
+            [[[0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 1, 0], [0, 0, 0, 0]], 5],
+            [[[0, 1, 1, 0], [0, 1, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0]], 6],
+            [[[0, 0, 0, 0], [1, 1, 1, 0], [0, 1, 0, 0], [0, 0, 0, 0]], 7]]
         var numeroAleatori = Math.round(Math.random() * 6);
         return peces[numeroAleatori];
     },
@@ -264,44 +316,54 @@ var joc = {
             this.nextPiece = new Piece(pa[0], pa[1]);
         }
         this.Piece = this.nextPiece;
-
         pa = this.RandomPiece();
         this.nextPiece = new Piece(pa[0], pa[1]);
-        if (this.Piece.color == "groc")
-            this.color = 1;
-        else if (this.Piece.color == "lila")
-            this.color = 2;
-        else if (this.Piece.color == "verd")
-            this.color = 3;
-        else if (this.Piece.color == "roig")
-            this.color = 4;
-        else if (this.Piece.color == "blau")
-            this.color = 5;
-        else if (this.Piece.color == "taronga")
-            this.color = 6;
-        else if (this.Piece.color == "morat")
-            this.color = 7;
+        this.color = this.Piece.color; 
         this.EliminarEspai();
+        this.SeguentPiece();
+        this.comptador[this.color-1]=this.comptador[this.color-1]+1;
+        this.Score=this.Score+10;
+
+    },
+    SeguentPiece: function () {
+        
+        for (var i = 0; i < 4; i++) {
+            for (var x = 0; x < 4; x++) {
+                if(this.nextPiece.forma[x][i]==1)
+                ctxSe.drawImage(this.CalculColor(this.nextPiece.color), x * 28, i * 28, 28, 28);
+                else
+                ctxSe.drawImage(vacio, x * 28, i * 28, 28, 28);
+            }
+        }
     }
 
 };
 
 joc.inicialitzar();
 
-joc.NewPiece();
+
 var interval = setInterval(function () {
+
     joc.BaixarPiece();
     joc.MostrarEspai();
+    document.getElementById("tgroc").innerHTML =  joc.comptador[0];
+    document.getElementById("tlila").innerHTML =  joc.comptador[1];
+    document.getElementById("tverd").innerHTML =  joc.comptador[2];
+    document.getElementById("troig").innerHTML =  joc.comptador[3];
+    document.getElementById("tblau").innerHTML =  joc.comptador[4];
+    document.getElementById("ttaronja").innerHTML =  joc.comptador[5];
+    document.getElementById("tmorat").innerHTML =  joc.comptador[6];
+    document.getElementById("count").innerHTML = "SCORE : " + joc.Score;
     //joc.Piece.rotarEsquerra();
 }, 200);
 
-document.getElementById("count").innerHTML = "SCORE : " + joc.Score;
 function TeclaPitjada(e) {
     if (e["code"] == "ArrowUp") {
         joc.girA = true;
     } else
         if (e["code"] == "ArrowDown") {
-            //Player["gir"] = 1;
+            joc.baixar=true;
+        joc.Score=joc.Score+1;
         } else
             if (e["code"] == "ArrowRight") {
                 joc.mouredreta = true;
@@ -310,10 +372,7 @@ function TeclaPitjada(e) {
                     joc.moureesquerra = true;
                 }
     if (e["code"] == "Enter") {
-        if (interval != null) {
-            clearInterval(interval);
-            interval = null;
-        }
-        Play();
+        joc.baixar=true;
+        joc.Score=joc.Score+1;
     }
 }

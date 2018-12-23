@@ -1,27 +1,69 @@
-
 <!DOCTYPE html>
 <html>
- <link href="styles/estil.css" type="text/css" rel="stylesheet">
-<body id="all">                     
-<img src="resources/vacio.jpg"    id="vacio"    style="display: none;"/>  
-<img src="resources/groc.jpg"    id="groc"    style="display: none;"/>  
-<img src="resources/lila.jpg"    id="lila"    style="display: none;"/>  
-<img src="resources/verd.jpg"    id="verd"    style="display: none;"/> 
-<img src="resources/roig.jpg"    id="roig"    style="display: none;"/>   
-<img src="resources/blau.jpg"    id="blau"    style="display: none;"/>  
-<img src="resources/taronga.jpg"    id="taronga"    style="display: none;"/>
-<img src="resources/morat.jpg"    id="morat"    style="display: none;"/>  
-<div><div class="count" id="count">0</div></div>
-<canvas id="espai" width="280" height="700" margin="auto"> </canvas>
-<script type="text/javascript" src="code.js"></script>   
-</body>      
-<script>                                                          
-   function notificaObservador(e) {                                
-      TeclaPitjada(e);                                     
-      }                                                            
-   var element = document.getElementById("all");                  
+<link href="styles/estil.css" type="text/css" rel="stylesheet">
+
+<body id="all">
+   <img src="resources/vacio.jpg" id="vacio" style="display: none;" />
+
+
+
+
+
+
+
+   <div>
+      <div class="count" id="count">0</div>
+   </div>
+   <div class="espaiJoc">
+      <div class="cespai">
+         <table style="width:112">
+            <tr>
+               <td><img src="resources/groc.jpg" id="groc" /></td>
+               <td id="tgroc">0</td>
+            </tr>
+            <tr>
+               <td><img src="resources/lila.jpg" id="lila" /></td>
+               <td id="tlila">0</td>
+            </tr>
+            <tr>
+               <td> <img src="resources/verd.jpg" id="verd" /></td>
+               <td id="tverd">0</td>
+            </tr>
+            <tr>
+               <td><img src="resources/roig.jpg" id="roig" /></td>
+               <td id="troig">0</td>
+            </tr>
+            <tr>
+               <td><img src="resources/blau.jpg" id="blau" /></td>
+               <td id="tblau">0</td>
+            </tr>
+            <tr>
+               <td><img src="resources/taronga.jpg" id="taronga" /></td>
+               <td id="ttaronja">0</td>
+            </tr>
+            <tr>
+               <td><img src="resources/morat.jpg" id="morat" /></td>
+               <td id="tmorat">0</td>
+            </tr>
+         </table>
+      </div>
+      <div class="cespai">
+         <canvas id="espai" width="280" height="700" margin="auto"> </canvas>
+      </div>
+      <div class="cespai">
+         <canvas id="proxima" width="112" height="112"> </canvas>
+      </div>
+   </div>
+   <script type="text/javascript" src="code.js"></script>
+</body>
+<script>
+   function notificaObservador(e) {
+      TeclaPitjada(e);
+   }
+   var element = document.getElementById("all");
    element.addEventListener("keydown", notificaObservador);       
 </script>
 
 </body>
+
 </html>

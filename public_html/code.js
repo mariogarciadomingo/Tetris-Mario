@@ -34,7 +34,8 @@ Piece.prototype.rotarEsquerra = function () {
 var joc = {
     color: 0,
     Score:0,
-    
+    interval : 500,
+    contPieces : 0,
     girA: false,
     espaiEliminatX: 0,
     espaiEliminatY: 0,
@@ -47,7 +48,7 @@ var joc = {
     Piece: new Piece(),
     nextPiece: [],
     comptador: [0, 0, 0, 0, 0, 0, 0],
-    interval: 1000,
+    
     inicialitzar: function () {
         this.NewPiece();
         this.espai[0] = new Array(25);
@@ -189,9 +190,17 @@ var joc = {
                 if (this.Piece.y > 2){
                     this.EliminarFilasCompletas();
                     this.NewPiece();
+                    this.contPieces = this.contPieces+1;
+                    if(this.contPieces==10)
+                    {
+                    this.interval=this.interval-10;
+                    SetInterval();
+                    }
                 }
-                else
+                else{
                     clearInterval(interval);
+                    this.interval=0;
+                }
             }
             if(this.baixar)
             {this.BaixarPiece();}
@@ -340,10 +349,11 @@ var joc = {
 };
 
 joc.inicialitzar();
-
-
+var interval;
+function SetInterval(){
+if(interval!=null)
+clearInterval(interval);
 var interval = setInterval(function () {
-
     joc.BaixarPiece();
     joc.MostrarEspai();
     document.getElementById("tgroc").innerHTML =  joc.comptador[0];
@@ -355,7 +365,10 @@ var interval = setInterval(function () {
     document.getElementById("tmorat").innerHTML =  joc.comptador[6];
     document.getElementById("count").innerHTML = "SCORE : " + joc.Score;
     //joc.Piece.rotarEsquerra();
-}, 200);
+}, joc.interval);
+}
+SetInterval();
+
 
 function TeclaPitjada(e) {
     if (e["code"] == "ArrowUp") {
@@ -363,6 +376,7 @@ function TeclaPitjada(e) {
     } else
         if (e["code"] == "ArrowDown") {
             joc.baixar=true;
+        if(interval!=0)
         joc.Score=joc.Score+1;
         } else
             if (e["code"] == "ArrowRight") {
@@ -373,6 +387,7 @@ function TeclaPitjada(e) {
                 }
     if (e["code"] == "Enter") {
         joc.baixar=true;
+        if(interval!=0)
         joc.Score=joc.Score+1;
     }
 }
